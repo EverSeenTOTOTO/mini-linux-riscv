@@ -29,7 +29,7 @@ within(async () => {
     cd(Busybox);
 
     await $`make CROSS_COMPILE=${CrossCompiler} defconfig`;
-    // await $`make CROSS_COMPILE=${CrossCompiler} menuconfig`;
+    await $`sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/g' .config`; // build busybox with static link
     await $`make CROSS_COMPILE=${CrossCompiler} -j${Cpus}`;
     await $`cp busybox ${BusyboxTarget}`;
     await echo(`Copied busybox to ${chalk.green(BusyboxTarget)}`);

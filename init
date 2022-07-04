@@ -11,5 +11,5 @@ done
 mkdir -p /proc && mount -t proc none /proc
 mkdir -p /sys && mount -t sysfs none /sys
 
-export PS1="$ "
+export PS1="> "
 /bin/busybox sh

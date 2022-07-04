@@ -3,6 +3,7 @@
 const InitScript = path.join(__dirname, 'init');
 const BusyboxTarget = path.join(__dirname, 'build/busybox');
 const RootImg = path.join(__dirname, 'build/rootfs.img');
+const ELF = path.join(__dirname, 'build/main.out');
 const MountDir = '/mnt/mini';
 
 if (!fs.existsSync(MountDir)) {
@@ -31,6 +32,10 @@ within(async () => {
     await $`sudo mkdir etc/init.d`;
     await $`sudo cp ${InitScript} etc/init.d/rcS`;
     await $`sudo chmod +x etc/init.d/rcS`;
+
+    if (fs.existsSync(ELF)) {
+      await $`sudo cp ${ELF} .`;
+    }
 
     cd("..");
 

@@ -11,51 +11,25 @@ if (!fs.existsSync(BuildDir)) {
 
 cd(BuildDir);
 
+// install kernel
 within(async () => {
-  // install busybox
+  const Kernel = 'linux-5.17.5';
+  const KernelUrl = `https://cdn.kernel.org/pub/linux/kernel/v5.x/${Kernel}.tar.xz`;
+  const KernelTarget = path.join(BuildDir, 'vmlinux');
 
-  const Busybox = 'busybox-1.35.0';
-  const BusyboxUrl = `https://busybox.net/downloads/${Busybox}.tar.bz2`
-  const BusyboxTarget = path.join(BuildDir, 'busybox');
-
-  if (fs.existsSync(BusyboxTarget)) {
-    await echo(`${chalk.green(BusyboxTarget)} already exists.`);
+  if (fs.existsSync(KernelTarget)) {
+    await echo(`${chalk.green(KernelTarget)} already exists.`);
   } else {
-    if (!fs.existsSync(Busybox)) {
-      await $`wget ${BusyboxUrl}`;
-      await $`tar -xvf ${Busybox}.tar.bz2`;
+    if (!fs.existsSync(Kernel)) {
+      await $`wget ${KernelUrl}`;
+      await $`tar -xvf ${Kernel}.tar.xz`;
     }
 
-    cd(Busybox);
+    cd(Kernel);
 
-    await $`make CROSS_COMPILE=${CrossCompiler} defconfig`;
-    await $`sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/g' .config`; // build busybox with static link
-    await $`make CROSS_COMPILE=${CrossCompiler} -j${Cpus}`;
-    await $`cp busybox ${BusyboxTarget}`;
-    await echo(`Copied busybox to ${chalk.green(BusyboxTarget)}`);
+    await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} defconfig`;
+    await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} -j${Cpus}`;
+    await $`cp build/${Kernel}/arch/riscv/boot/Image ${KernelTarget}`;
+    await echo(`Copied vmlinux to ${chalk.green(KernelTarget)}`);
   }
-}).then(() => {
-  // install kernel
-
-  within(async () => {
-    const Kernel = 'linux-5.17.5';
-    const KernelUrl = `https://cdn.kernel.org/pub/linux/kernel/v5.x/${Kernel}.tar.xz`;
-    const KernelTarget = path.join(BuildDir, 'vmlinux');
-
-    if (fs.existsSync(KernelTarget)) {
-      await echo(`${chalk.green(KernelTarget)} already exists.`);
-    } else {
-      if (!fs.existsSync(Kernel)) {
-        await $`wget ${KernelUrl}`;
-        await $`tar -xvf ${Kernel}.tar.xz`;
-      }
-
-      cd(Kernel);
-
-      await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} defconfig`;
-      await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} -j${Cpus}`;
-      await $`cp ${Kernel}/arch/riscv/boot/Image ${KernelTarget}`;
-      await echo(`Copied vmlinux to ${chalk.green(KernelTarget)}`);
-    }
-  })
 })

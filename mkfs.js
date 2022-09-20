@@ -1,5 +1,6 @@
 #!/usr/bin/env zx
 
+const RemoteImg = 'archriscv-20220727.tar.zst'; // NJU mirror
 const InitScript = path.join(__dirname, 'init');
 const BusyboxTarget = path.join(__dirname, 'build/busybox');
 const RootImg = path.join(__dirname, 'build/rootfs.img');
@@ -13,7 +14,7 @@ if (!fs.existsSync(MountDir)) {
 
 within(async () => {
   if (!fs.existsSync(RootImg)) {
-    await $`dd if=/dev/zero of=${RootImg} bs=1M count=128`;
+    await $`dd if=/dev/zero of=${RootImg} bs=1G count=1`;
     await $`mkfs.ext4 -F ${RootImg}`;
     await echo(`Created root fs ${chalk.green(RootImg)}`);
 
@@ -21,17 +22,11 @@ within(async () => {
 
     cd(MountDir);
 
-    await $`sudo mkdir -p bin etc dev lib proc sbin tmp usr usr/bin usr/lib usr/sbin`;
-    await $`sudo cp ${BusyboxTarget} bin`;
-    await $`sudo file bin/busybox`;
-    await $`sudo ln -s ../bin/busybox sbin/init`;
-    await $`sudo ln -s ../bin/busybox bin/sh`;
-    await $`sudo tree`;
+    const RemoteImgUrl = `https://mirror.nju.edu.cn/archriscv/images/${RemoteImg}`
 
-    // init 
-    await $`sudo mkdir etc/init.d`;
-    await $`sudo cp ${InitScript} etc/init.d/rcS`;
-    await $`sudo chmod +x etc/init.d/rcS`;
+    await $`sudo wget ${RemoteImgUrl}`;
+    await $`sudo tar -xvf ${RemoteImg}`;
+    await $`sudo rm -rf ${RemoteImg}`;
 
     if (fs.existsSync(ELF)) {
       await $`sudo cp ${ELF} .`;

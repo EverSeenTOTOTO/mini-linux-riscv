@@ -54,7 +54,7 @@ within(async () => {
 
       await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} defconfig`;
       await $`make ARCH=riscv CROSS_COMPILE=${CrossCompiler} -j${Cpus}`;
-      await $`cp ${Kernel}/arch/riscv/boot/Image ${KernelTarget}`;
+      await $`cp build/${Kernel}/arch/riscv/boot/Image ${KernelTarget}`;
       await echo(`Copied vmlinux to ${chalk.green(KernelTarget)}`);
     }
   })
